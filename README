@@ -1,0 +1,6 @@
+BUILD
+* To build this, run the Apache Maven 2 tool  at the base of the code base (where the top most pom.xml file is): mvn clean install 
+* there are shell scripts (should be named *redeploy.sh* in each folder) that show you how to compile the code and
+  deploy them to Cloud Foundry. Because each module has already a manifest.yml, they don't need to tweaked, except when it comes to the URL of the application. Obviously, there's a high 
+  degree the URL you want is already taken by somebody else, so choose wisely.
+* For the integration demos (-webclient, and -service), you need to install the -service first, then kick open the -webclient version)

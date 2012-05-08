@@ -1,0 +1,18 @@
+--- 
+applications: 
+  target/appassembler/: 
+    name: integration-service
+    framework: 
+      name: standalone
+      info: 
+        mem: 64M
+        description: Standalone Application
+        exec: 
+    runtime: java
+    command: bin/main
+    url: 
+    mem: 512M
+    instances: 1
+    services: 
+      stock_rabbitmq: 
+        type: rabbitmq

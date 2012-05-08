@@ -1,0 +1,16 @@
+--- 
+applications: 
+  target/cf-workers-integration-webclient-1.0-SNAPSHOT: 
+    name: integration-webclient
+    framework: 
+      name: java_web
+      info: 
+        mem: 512M
+        description: Java Web Application
+        exec: 
+    url: ${name}.${target-base}
+    mem: 512M
+    instances: 1
+    services: 
+      stock_rabbitmq: 
+        type: rabbitmq
