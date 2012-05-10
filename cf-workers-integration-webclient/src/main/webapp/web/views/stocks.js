@@ -28,6 +28,12 @@ var utils = {
     }
 };
 
+/**
+ * Data comes from http://stocks-web.cloudfoundry.com/stocks/${STOCK TICKER SYMBOL} where ${STOCK TICKER SYMBOL} might be, for example, "VMW."
+ *
+ * A sample result is: {"id":718288,"exchange":"NYSE","changeWhileOpen":-3.34,"ticker":"VMW","highPrice":107.38,"lowPrice":104.26,"lastValueWhileOpen":104.26}
+ *
+ */
 function StockCtrl($scope) {
 
     $scope.ticker = 'VMW';
@@ -45,6 +51,8 @@ function StockCtrl($scope) {
             });
         });
     };
+
+    $scope.lookupStock(); // when the page loads, it should lookup the default stock
 
 }
 

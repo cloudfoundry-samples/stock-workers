@@ -36,9 +36,9 @@ public class NightlyStockSymbolRecorder {
     private JobLauncher jobLauncher;
     private Job job;
 
+    // a more practical configuration might look like:
     // @Scheduled(cron = "0 23 ? * MON-FRI")
     // every weekday at 11 PM / 23h00
-
     // set to every 10s for testing.
     @Scheduled(fixedRate = 10 * 1000)
     public void runNightlyStockPriceRecorder() throws Throwable {

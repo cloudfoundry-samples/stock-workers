@@ -1,5 +1,0 @@
-- split client / service into 2 separate modules that are both deployed into cloud foundry (maybe the client gets used by a web application or something)
-- restore the 'real' stock ticker service and remove the mock one
-- restore the client itself, theres no need for the 'invoker' bean (redundant!)
-- can the common infrastructure bits shared between cleint and service be extracted out to a commmon config type?
-- use the cloud foundry runtime to dynamically load the rabbit configuration from the cloud so that these apps run corrctly on cloud foundry
