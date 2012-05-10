@@ -26,9 +26,7 @@ import java.util.logging.Logger;
 /**
  * Client API to the Google Finance stock symbol JSON feed.
  *
- *
  * @author Josh Long (josh.long@springsource.com)
- *
  */
 public class GoogleFinanceStockSymbolLookupClient  implements StockSymbolLookupClient {
 
@@ -36,6 +34,7 @@ public class GoogleFinanceStockSymbolLookupClient  implements StockSymbolLookupC
 
     private RestTemplate restTemplate;
 
+    private Logger logger = Logger .getLogger(getClass().getName());
 
     public GoogleFinanceStockSymbolLookupClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
@@ -54,7 +53,6 @@ public class GoogleFinanceStockSymbolLookupClient  implements StockSymbolLookupC
         JsonNode node = new ObjectMapper().readTree(response);
         return convertJsonNodeInToSymbolLookup(node);
     }
-
     private StockSymbolLookup convertJsonNodeInToSymbolLookup(JsonNode jsonNode) throws Throwable {
         Number id = jsonNode.get("id").getValueAsLong();
         Double changeWhileOpen = jsonNode.get("c").getValueAsDouble();
@@ -67,5 +65,4 @@ public class GoogleFinanceStockSymbolLookupClient  implements StockSymbolLookupC
         logger.info("service: retrieved stock information: "+ ToStringBuilder.reflectionToString(lookup));
         return lookup;
     }
-    private Logger logger = Logger .getLogger(getClass().getName());
 }

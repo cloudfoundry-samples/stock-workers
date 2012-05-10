@@ -20,10 +20,9 @@ import org.springframework.util.StringUtils;
 import java.util.Random;
 
 /**
- * returns a mock implementation of the {@link StockSymbolLookup}
+ * a mock implementation of the {@link StockSymbolLookup}. Handy for offline testing.
  *
  * @author Josh Long (josh.long@springsource.com)
- *
  */
 public class MockStockSymbolLookupClient implements StockSymbolLookupClient {
 

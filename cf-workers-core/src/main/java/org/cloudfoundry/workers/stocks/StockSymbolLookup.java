@@ -20,7 +20,6 @@ package org.cloudfoundry.workers.stocks;
  * A simple entity to wrap the lookup result data.
  *
  * @author Josh Long (josh.long@springsource.com)
- *
  */
 public class StockSymbolLookup {
 
@@ -33,6 +32,7 @@ public class StockSymbolLookup {
     private Double lastValueWhileOpen;
 
     public StockSymbolLookup(){}
+
     public StockSymbolLookup(Number id, Double changeWhileOpen, String ticker, String exchange, Double highPrice, Double lowPrice, Double lastValueWhileOpen) {
         this.id = id;
         this.changeWhileOpen = changeWhileOpen;

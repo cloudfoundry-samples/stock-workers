@@ -29,7 +29,6 @@ import java.util.logging.Logger;
  * This version relies on the following RESTful YQL query:
  *
  * @author Josh Long (josh.long@springsource.com)
- *
  */
 public class YahooPipesQuotesApiStockSymbolLookupClient implements StockSymbolLookupClient {
 
