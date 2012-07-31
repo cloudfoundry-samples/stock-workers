@@ -22,20 +22,15 @@
         </form>
     </div>
     <form class="form-horizontal" ng-submit="updateCustomer">
+    
         <fieldset>
             <legend> Information on {{stock.ticker}}</legend>
             <div class="control-group"><span class="control-label">Ticker:</span>
                 <div class="controls"> {{stock.ticker}}</div>
             </div>
-            <div class="control-group"><span class="control-label">Low Price:</span>
-                <div class="controls"> {{stock.lowPrice}}</div>
-            </div>
-            <div class="control-group"><span class="control-label">High Price:</span>
-                <div class="controls"> {{stock.highPrice}}</div>
-            </div>
-            <div class="control-group"><span class="control-label">Change While Open:</span>
-                <div class="controls"> {{stock.changeWhileOpen}}</div>
-            </div>
+            <div class="control-group"><span class="control-label">Last Value While Open:</span>
+                <div class="controls"> {{stock.lastValueWhileOpen}}</div>
+            </div>             
             <div class="control-group"><span class="control-label">Exchange:</span>
                 <div class="controls"> {{stock.exchange}}</div>
             </div>
