@@ -16,6 +16,7 @@
 
 package org.cloudfoundry.workers.stocks;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ToStringBuilder;
 import org.codehaus.jackson.JsonNode;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -27,57 +28,84 @@ import java.util.logging.Logger;
 
 /**
  * This version relies on the following RESTful YQL query:
- *
+ * 
  * @author Josh Long (josh.long@springsource.com)
  */
-public class YahooPipesQuotesApiStockSymbolLookupClient implements StockSymbolLookupClient {
+public class YahooPipesQuotesApiStockSymbolLookupClient implements
+		StockSymbolLookupClient {
 
-    private RestTemplate restTemplate  ;
+	private RestTemplate restTemplate;
 
-    private String url = "http://query.yahooapis.com/v1/public/yql?q={q}&format={format}&env={env}&callback={callback}";
+	private String url = "http://query.yahooapis.com/v1/public/yql?q={q}&format={format}&env={env}&callback={callback}";
 
-    private Logger logger = Logger.getLogger(YahooPipesQuotesApiStockSymbolLookupClient.class.getName());
+	private Logger logger = Logger
+			.getLogger(YahooPipesQuotesApiStockSymbolLookupClient.class
+					.getName());
 
-    public YahooPipesQuotesApiStockSymbolLookupClient(RestTemplate restTemplate ){
-        this.restTemplate = restTemplate;
-    }
+	public YahooPipesQuotesApiStockSymbolLookupClient(RestTemplate restTemplate) {
+		this.restTemplate = restTemplate;
+	}
 
-    private Map<String, String> buildParamsForUrl(String q, String format, String env, String cb) {
-        Map<String, String> maps = new HashMap<String, String>();
-        maps.put("q", q);
-        maps.put("format", format);
-        maps.put("env", env);
-        maps.put("callback", cb);
-        return maps;
-    }
+	private Map<String, String> buildParamsForUrl(String q, String format,
+			String env, String cb) {
+		Map<String, String> maps = new HashMap<String, String>();
+		maps.put("q", q);
+		maps.put("format", format);
+		maps.put("env", env);
+		maps.put("callback", cb);
+		return maps;
+	}
 
-    private Map<String, String> buildStockUrl(String symbol) {
-        String q = String.format("select * from yahoo.finance.quotes where symbol in (\"%s\")", symbol);
-        return buildParamsForUrl(q, "json", "store://datatables.org/alltableswithkeys", "cbfunc");
-    }
+	private Map<String, String> buildStockUrl(String symbol) {
+		String q = String.format(
+				"select * from yahoo.finance.quotes where symbol in (\"%s\")",
+				symbol);
+		return buildParamsForUrl(q, "json",
+				"store://datatables.org/alltableswithkeys", "cbfunc");
+	}
 
-    @Override
-    public StockSymbolLookup lookupSymbol(String symbol) throws Throwable {
-        String response = restTemplate.getForObject(url, String.class, buildStockUrl(symbol));
-        response = response.substring(response.indexOf("(") + 1);
-        response = response.substring(0, response.lastIndexOf(")")).trim();
-        logger.info(response);
-        JsonNode jsonNode = new ObjectMapper().readTree(response);
-        return convertJsonNodeToStockSymbolLookup(jsonNode);
-    }
+	@Override
+	public StockSymbolLookup lookupSymbol(String symbol) throws Throwable {
+		String response = restTemplate.getForObject(url, String.class,
+				buildStockUrl(symbol));
+		response = response.substring(response.indexOf("(") + 1);
+		response = response.substring(0, response.lastIndexOf(")")).trim();
+		logger.info(response);
+		JsonNode jsonNode = new ObjectMapper().readTree(response);
+		return convertJsonNodeToStockSymbolLookup(jsonNode);
+	}
 
-    private StockSymbolLookup convertJsonNodeToStockSymbolLookup(JsonNode jsonNode) {
-        JsonNode jsonNode1 =jsonNode.get("query").get("results").get("quote");
-        logger.info(ToStringBuilder.reflectionToString(jsonNode1));
-        String symbol = jsonNode1.get("symbol").getValueAsText();
-        String range = jsonNode1.get("DaysRange").getValueAsText();
-        String parts[]=range.split("\\s+-\\s+")  ;
-        Double low=Double.parseDouble(parts[0]), high=Double.parseDouble(parts[1]);
-        String exchange = jsonNode1.get("StockExchange").getValueAsText();
-        Double lastTradedPrice = jsonNode1.get("LastTradePriceOnly").getValueAsDouble();
-        return new StockSymbolLookup(null, high - low, symbol,exchange, high,low, lastTradedPrice);
-    }
+	private StockSymbolLookup convertJsonNodeToStockSymbolLookup(
+			JsonNode jsonNode) {
+		JsonNode jsonNode1 = jsonNode.get("query").get("results").get("quote");
+		logger.info(ToStringBuilder.reflectionToString(jsonNode1));
+		String symbol = jsonNode1.get("symbol").getValueAsText();
+		String range = jsonNode1.get("DaysRange").getValueAsText();
+		String parts[] = range.split("\\s+-\\s+");
+		Double low = parsePart(parts[0]), high = parsePart(parts[1]);
+		String exchange = jsonNode1.get("StockExchange").getValueAsText();
+		Double lastTradedPrice = jsonNode1.get("LastTradePriceOnly")
+				.getValueAsDouble();
+		return new StockSymbolLookup(null, high - low, symbol, exchange, high,
+				low, lastTradedPrice);
+	}
 
+	public static void main(String[] args) throws Throwable {
+		RestTemplate restTemplate = new RestTemplate();
+		YahooPipesQuotesApiStockSymbolLookupClient apiStockSymbolLookupClient = new YahooPipesQuotesApiStockSymbolLookupClient(
+				restTemplate);
+		StockSymbolLookup lookup = apiStockSymbolLookupClient
+				.lookupSymbol("VMW");
+		System.out.println(ToStringBuilder.reflectionToString(lookup));
+	}
 
+	private double parsePart(String in) {
+		if (StringUtils.isEmpty(in))
+			return 0;
+
+		if (in.contains("N/A"))
+			return 0;
+		return Double.parseDouble(in);
+	}
 
 }

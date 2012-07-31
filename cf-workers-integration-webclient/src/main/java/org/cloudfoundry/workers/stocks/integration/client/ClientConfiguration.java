@@ -16,10 +16,18 @@
 
 package org.cloudfoundry.workers.stocks.integration.client;
 
+import java.util.Collection;
+
+import org.apache.commons.lang.builder.ToStringBuilder;
 import org.cloudfoundry.runtime.env.CloudEnvironment;
 import org.cloudfoundry.runtime.env.RabbitServiceInfo;
 import org.cloudfoundry.runtime.service.messaging.RabbitServiceCreator;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Message;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -31,81 +39,97 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.Environment;
+import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.util.Assert;
 
-import java.util.Collection;
-
-
 /**
- * Configures the service's gateway client which in turn communicates with
- * the remote service through a Spring Integration gateway implementation.
- *
+ * Configures the service's gateway client which in turn communicates with the
+ * remote service through a Spring Integration gateway implementation.
+ * 
  * @author Josh Long (josh.long@springsource.com)
  */
 @ImportResource("classpath:/client.xml")
 @Configuration
 public class ClientConfiguration {
 
-    private String tickers = "tickers";
+	private String tickers = "tickers";
 
-    @Autowired
-    private Environment environment;
+	@Autowired
+	private Environment environment;
 
-    @Bean
-    public RabbitTemplate amqpTemplate() {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
-        rabbitTemplate.setMessageConverter(mc());
-        return rabbitTemplate;
-    }
+	@Bean
+	public RabbitTemplate amqpTemplate() {
+		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
+		rabbitTemplate.setMessageConverter(mc());
+		return rabbitTemplate;
+	}
 
-    @Bean
-    public RabbitTransactionManager amqpTransactionManager() {
-        return new RabbitTransactionManager(this.connectionFactory());
-    }
+	@Bean
+	public RabbitTransactionManager amqpTransactionManager() {
+		return new RabbitTransactionManager(this.connectionFactory());
+	}
 
-    @Bean
-    public MessageConverter mc() {
-        return new JsonMessageConverter();
-    }
+	@Bean
+	public MessageConverter mc() {
+		return new JsonMessageConverter();
+	}
 
-    @Bean
-    public ConnectionFactory connectionFactory() {
+	@Bean
+	public ConnectionFactory connectionFactory() {
 
-        CloudEnvironment cloudEnvironment = this.cloudEnvironment();
-        Collection<RabbitServiceInfo> rabbitServiceInfoList = cloudEnvironment.getServiceInfos(RabbitServiceInfo.class);
-        Assert.isTrue(rabbitServiceInfoList.size() > 0 , "the rabbitService infos collection should be > 0");
-        RabbitServiceInfo rabbitServiceInfo = rabbitServiceInfoList.iterator().next();
-        RabbitServiceCreator rabbitServiceCreator = new RabbitServiceCreator();
-        return rabbitServiceCreator.createService(rabbitServiceInfo);
-    }
+		CloudEnvironment cloudEnvironment = this.cloudEnvironment();
+		Collection<RabbitServiceInfo> rabbitServiceInfoList = cloudEnvironment
+				.getServiceInfos(RabbitServiceInfo.class);
+		Assert.isTrue(rabbitServiceInfoList.size() > 0,
+				"the rabbitService infos collection should be > 0");
+		RabbitServiceInfo rabbitServiceInfo = rabbitServiceInfoList.iterator()
+				.next();
+		RabbitServiceCreator rabbitServiceCreator = new RabbitServiceCreator();
+		return rabbitServiceCreator.createService(rabbitServiceInfo);
+	}
 
-    @Bean
-    public CloudEnvironment cloudEnvironment() {
-        return new CloudEnvironment();
-    }
+	@Bean
+	public CloudEnvironment cloudEnvironment() {
+		return new CloudEnvironment();
+	}
 
-    @Bean
-    public AmqpAdmin amqpAdmin() {
-        return new RabbitAdmin(this.connectionFactory());
-    }
+	@Bean
+	public AmqpAdmin amqpAdmin() {
+		return new RabbitAdmin(this.connectionFactory());
+	}
 
-    @Bean
-    public Queue customerQueue() {
-        Queue q = new Queue(this.tickers);
-        amqpAdmin().declareQueue(q);
-        return q;
-    }
+	@Bean
+	public Queue customerQueue() {
+		Queue q = new Queue(this.tickers);
+		amqpAdmin().declareQueue(q);
+		return q;
+	}
 
-    @Bean
-    public DirectExchange customerExchange() {
-        DirectExchange directExchange = new DirectExchange(tickers);
-        this.amqpAdmin().declareExchange(directExchange);
-        return directExchange;
-    }
+	@Bean
+	public DirectExchange customerExchange() {
+		DirectExchange directExchange = new DirectExchange(tickers);
+		this.amqpAdmin().declareExchange(directExchange);
+		return directExchange;
+	}
 
-    @Bean
-    public Binding marketDataBinding() {
-        return BindingBuilder.bind(customerQueue()).to(customerExchange()).with(this.tickers);
-    }
+	@Bean
+	public Binding marketDataBinding() {
+		return BindingBuilder.bind(customerQueue()).to(customerExchange())
+				.with(this.tickers);
+	}
+
+	static class MyLogger {
+		@ServiceActivator
+		public void log(org.springframework.integration.Message<?> msg)
+				throws Throwable {
+			Object payload = msg.getPayload();
+			System.out.println(ToStringBuilder.reflectionToString(payload));
+		}
+	}
+
+	@Bean
+	public MyLogger logger() {
+		return new MyLogger();
+	}
 
 }

@@ -24,6 +24,8 @@
             routing-key="tickers"
             amqp-template="amqpTemplate"
     />
+    
+    <service-activator input-channel="errorChannel"  ref = "logger"/>
 
 
 </beans:beans>
