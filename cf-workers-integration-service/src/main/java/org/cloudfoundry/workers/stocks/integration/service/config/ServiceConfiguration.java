@@ -14,32 +14,23 @@
  * limitations under the License.
  */
 
-package org.cloudfoundry.workers.stocks.integration.service;
+package org.cloudfoundry.workers.stocks.integration.service.config;
 
-import org.cloudfoundry.runtime.env.CloudEnvironment;
-import org.cloudfoundry.runtime.env.RabbitServiceInfo;
-import org.cloudfoundry.runtime.service.messaging.RabbitServiceCreator;
-import org.cloudfoundry.workers.stocks.GoogleFinanceStockSymbolLookupClient;
-import org.cloudfoundry.workers.stocks.MockStockSymbolLookupClient;
 import org.cloudfoundry.workers.stocks.StockSymbolLookupClient;
 import org.cloudfoundry.workers.stocks.YahooPipesQuotesApiStockSymbolLookupClient;
 import org.springframework.amqp.core.*;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.transaction.RabbitTransactionManager;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
-import org.springframework.context.annotation.PropertySource;
-import org.springframework.core.env.Environment;
-import org.springframework.util.Assert;
 import org.springframework.web.client.RestTemplate;
 
-import java.util.Collection;
+import javax.inject.Inject;
 
 
 /**
@@ -48,8 +39,12 @@ import java.util.Collection;
  * @author Josh Long (josh.long@springsource.com)
  */
 @ImportResource("/symbol-lookup-gateway-service.xml")
+//@Import({LocalRabbitConnectionFactoryConfiguration.class, CloudRabbitConnectionFactoryConfiguration.class})
 @Configuration
 public class ServiceConfiguration {
+
+    @Inject
+    private RabbitConnectionFactoryConfiguration rabbitConnectionFactoryConfiguration;
 
     private String stocks = "tickers";
 
@@ -64,15 +59,15 @@ public class ServiceConfiguration {
     }
 
     @Bean
-    public RabbitTemplate rabbitTemplate() {
-        RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
+    public RabbitTemplate rabbitTemplate() throws Throwable {
+        RabbitTemplate rabbitTemplate = new RabbitTemplate(rabbitConnectionFactoryConfiguration.connectionFactory());
         rabbitTemplate.setMessageConverter(mc());
         return rabbitTemplate;
     }
 
     @Bean
-    public RabbitTransactionManager amqpTransactionManager() {
-        return new RabbitTransactionManager(this.connectionFactory());
+    public RabbitTransactionManager amqpTransactionManager() throws Throwable {
+        return new RabbitTransactionManager(rabbitConnectionFactoryConfiguration.connectionFactory());
     }
 
     @Bean
@@ -80,42 +75,28 @@ public class ServiceConfiguration {
         return new JsonMessageConverter();
     }
 
+
     @Bean
-    public CloudEnvironment cloudEnvironment() {
-        return new CloudEnvironment();
+    public AmqpAdmin amqpAdmin() throws Throwable {
+        return new RabbitAdmin(rabbitConnectionFactoryConfiguration.connectionFactory());
     }
 
     @Bean
-    public ConnectionFactory connectionFactory() {
-        CloudEnvironment cloudEnvironment = this.cloudEnvironment();
-        Collection<RabbitServiceInfo> rabbitServiceInfoList = cloudEnvironment.getServiceInfos(RabbitServiceInfo.class);
-        Assert.isTrue(rabbitServiceInfoList.size() > 0, "the rabbitService infos collection should be > 0");
-        RabbitServiceInfo rabbitServiceInfo = rabbitServiceInfoList.iterator().next();
-        RabbitServiceCreator rabbitServiceCreator = new RabbitServiceCreator();
-        return rabbitServiceCreator.createService(rabbitServiceInfo);
-    }
-
-    @Bean
-    public AmqpAdmin amqpAdmin() {
-        return new RabbitAdmin(this.connectionFactory());
-    }
-
-    @Bean
-    public Queue customerQueue() {
+    public Queue customerQueue() throws Throwable {
         Queue q = new Queue(this.stocks);
         amqpAdmin().declareQueue(q);
         return q;
     }
 
     @Bean
-    public DirectExchange customerExchange() {
+    public DirectExchange customerExchange() throws Throwable {
         DirectExchange directExchange = new DirectExchange(stocks);
         this.amqpAdmin().declareExchange(directExchange);
         return directExchange;
     }
 
     @Bean
-    public Binding marketDataBinding() {
+    public Binding marketDataBinding() throws Throwable {
         return BindingBuilder.bind(customerQueue()).to(customerExchange()).with(this.stocks);
     }
 

@@ -17,6 +17,8 @@
 package org.cloudfoundry.workers.stocks.integration.service;
 
 
+import org.cloudfoundry.runtime.env.CloudEnvironment;
+import org.cloudfoundry.workers.stocks.integration.service.config.ServiceConfiguration;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
@@ -25,8 +27,16 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  * @author Josh Long (josh.long@springsource.com)
  */
 public class Main {
-    public static void main (String args []) throws Throwable {
-        AnnotationConfigApplicationContext annotationConfigApplicationContext
-                = new AnnotationConfigApplicationContext( ServiceConfiguration.class ) ;
+    public static void main(String args[]) throws Throwable {
+        AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext();
+        annotationConfigApplicationContext.getEnvironment().setActiveProfiles(isCloudFoundry() ? "cloud" : "local");
+        annotationConfigApplicationContext.scan(ServiceConfiguration.class.getPackage().getName());
+        annotationConfigApplicationContext.refresh();
+
+    }
+
+    private static boolean isCloudFoundry() {
+        CloudEnvironment ce = new CloudEnvironment();
+        return (ce.isCloudFoundry());
     }
 }
