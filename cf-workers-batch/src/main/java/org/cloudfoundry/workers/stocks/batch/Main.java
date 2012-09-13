@@ -17,6 +17,8 @@
 package org.cloudfoundry.workers.stocks.batch;
 
 
+import org.cloudfoundry.runtime.env.CloudEnvironment;
+
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
 /**
@@ -26,7 +28,15 @@ import org.springframework.context.annotation.AnnotationConfigApplicationContext
  */
 public class Main {
     public static void main (String [] args)   throws Throwable {
-        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(BatchConfiguration.class);
-        applicationContext.start();
+    	AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext();
+    	annotationConfigApplicationContext.getEnvironment().setActiveProfiles(isCloudFoundry() ? "cloud" : "local");
+    	annotationConfigApplicationContext.scan(BatchConfiguration.class.getPackage().getName());
+    	annotationConfigApplicationContext.refresh();
     }
+
+    private static boolean isCloudFoundry() {
+    	 CloudEnvironment ce = new CloudEnvironment();
+    	 return (ce.isCloudFoundry());
+    }
+
 }
