@@ -64,14 +64,15 @@ import org.springframework.web.client.RestTemplate;
  * Configures a Spring Batch job that looks at the ticker symbols in the
  * 'STOCKS' table, and then retrieves the information for all of the records for
  * that day.
- *
+ * 
  * @author Josh Long (josh.long@springsource.com)
  * @author Oleg Zhurakousky
  */
 @Configuration
 // tells Spring that this is a Java-centric configuration class
 @ImportResource("/batch.xml")
-@Import ({LocalDataSourceConfiguration.class, CloudDataSourceConfiguration.class})
+@Import({ LocalDataSourceConfiguration.class,
+		CloudDataSourceConfiguration.class })
 // contains the Spring Batch DSL which in turn sets up the Batch job
 @EnableScheduling
 // to enable the use of the @Scheduled annotation
@@ -81,11 +82,11 @@ public class BatchConfiguration {
 	private DataSourceConfiguration dsConfig;
 
 	/**
-	 *
+	 * 
 	 * The job that we want to run on a schedule (as made possible with Spring's
 	 * {@link org.springframework.scheduling.annotation.Scheduled scheduled
 	 * annotation}.)
-	 *
+	 * 
 	 * @throws Throwable
 	 */
 	@Bean
@@ -110,19 +111,23 @@ public class BatchConfiguration {
 	 * We have to have certain records and certain tables for our application to
 	 * work correctly. This object will be used to ensure that certain
 	 * <CODE>sql</CODE> files are executed on application startup.
-	 *
+	 * 
 	 * TODO make the SQL a little smarter about not recreating the tables unless
 	 * they don't exist.
-	 *
-	 */
-	//@Bean
+	 * 
+	 */	
+	@Bean
 	public DataSourceInitializer dataSourceInitializer() {
 		DataSourceInitializer dsi = new DataSourceInitializer();
 		dsi.setDataSource(dsConfig.dataSource());
 		ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
-		String[] scripts = "/batch_psql.sql,/stocks_psql.sql".split(",");
-		for (String s : scripts)
-			resourceDatabasePopulator.addScript(new ClassPathResource(s));
+		String[] scripts = "/batch_%s.sql,/stocks_%s.sql".split(",");
+		String scriptSuffix = cloudEnvironment().isCloudFoundry() ? "psql" : "h2";
+		for (String s : scripts){			
+			ClassPathResource classPathResource = 
+					new ClassPathResource(String.format(s, scriptSuffix)) ;
+			resourceDatabasePopulator.addScript(classPathResource);
+		}
 		dsi.setDatabasePopulator(resourceDatabasePopulator);
 		dsi.setEnabled(true);
 		return dsi;
@@ -130,7 +135,7 @@ public class BatchConfiguration {
 
 	/**
 	 * this bean registers Spring Batch {@link Job} instances with the runtime
-	 *
+	 * 
 	 * @throws Exception
 	 */
 	@Bean
@@ -155,7 +160,7 @@ public class BatchConfiguration {
 	/**
 	 * Registers Spring Batch {@link Job jobs} with the
 	 * {@link JobRegistryBeanPostProcessor}
-	 *
+	 * 
 	 * @see JobRegistryBeanPostProcessor
 	 * @throws Exception
 	 */
@@ -167,7 +172,7 @@ public class BatchConfiguration {
 	/**
 	 * Stores information about the {@link Job jobs} into a backend store (like
 	 * a {@link DataSource})
-	 *
+	 * 
 	 * @throws Exception
 	 */
 	@Bean
@@ -182,7 +187,7 @@ public class BatchConfiguration {
 
 	/**
 	 * Used for launching Spring Batch {@link Job job} instances
-	 *
+	 * 
 	 * @throws Exception
 	 */
 	@Bean
@@ -268,7 +273,7 @@ public class BatchConfiguration {
 	 * The Spring Batch {@link org.springframework.batch.item.ItemWriter item
 	 * writer} persists the {@link StockSymbolLookup} lookup results into a
 	 * table (<CODE>STOCKS_DATA</CODE>).
-	 *
+	 * 
 	 * @param dateOfAnalysis
 	 */
 	@Bean(name = "writer")
