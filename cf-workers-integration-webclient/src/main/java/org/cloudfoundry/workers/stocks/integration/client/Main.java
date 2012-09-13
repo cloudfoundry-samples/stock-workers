@@ -17,6 +17,7 @@
 package org.cloudfoundry.workers.stocks.integration.client;
 
 import org.apache.commons.lang.builder.ToStringBuilder;
+import org.cloudfoundry.runtime.env.CloudEnvironment;
 import org.cloudfoundry.workers.stocks.StockSymbolLookup;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
 
@@ -26,16 +27,26 @@ import java.util.logging.Logger;
  * Simple client that sends meesages to a service using the Spring Integration {@link org.springframework.integration.annotation.Gateway} support.
  *
  * @author Josh Long (josh.long@springsource.com)
- *
  */
 public class Main {
 
     public static void main(String args[]) throws Throwable {
-        AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext(ClientConfiguration.class);
+        AnnotationConfigApplicationContext annotationConfigApplicationContext = new AnnotationConfigApplicationContext();
+        annotationConfigApplicationContext.getEnvironment().setActiveProfiles(isCloudFoundry() ? "cloud" : "local");
+        annotationConfigApplicationContext.scan(ClientConfiguration.class.getPackage().getName());
+        annotationConfigApplicationContext.refresh();
+
         StockClientGateway clientGateway = annotationConfigApplicationContext.getBean(StockClientGateway.class);
         Logger log = Logger.getLogger(Main.class.getName());
         String symbol = "VMW";
         StockSymbolLookup lookup = clientGateway.lookup(symbol);
-        log.info("client: retrieved stock information: "+ ToStringBuilder.reflectionToString(lookup));
-     }
+        log.info("client: retrieved stock information: " + ToStringBuilder.reflectionToString(lookup));
+
+    }
+
+    private static boolean isCloudFoundry() {
+        CloudEnvironment ce = new CloudEnvironment();
+        return (ce.isCloudFoundry());
+    }
+
 }

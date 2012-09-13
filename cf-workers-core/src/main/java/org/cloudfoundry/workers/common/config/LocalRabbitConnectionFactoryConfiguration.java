@@ -1,4 +1,4 @@
-package org.cloudfoundry.workers.stocks.integration.service.config;
+package org.cloudfoundry.workers.common.config;
 
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;

@@ -16,6 +16,9 @@
 
 package org.cloudfoundry.workers.stocks.integration.service.config;
 
+import org.cloudfoundry.workers.common.config.CloudRabbitConnectionFactoryConfiguration;
+import org.cloudfoundry.workers.common.config.LocalRabbitConnectionFactoryConfiguration;
+import org.cloudfoundry.workers.common.config.RabbitConnectionFactoryConfiguration;
 import org.cloudfoundry.workers.stocks.StockSymbolLookupClient;
 import org.cloudfoundry.workers.stocks.YahooPipesQuotesApiStockSymbolLookupClient;
 import org.springframework.amqp.core.*;
@@ -39,7 +42,7 @@ import javax.inject.Inject;
  * @author Josh Long (josh.long@springsource.com)
  */
 @ImportResource("/symbol-lookup-gateway-service.xml")
-//@Import({LocalRabbitConnectionFactoryConfiguration.class, CloudRabbitConnectionFactoryConfiguration.class})
+@Import({LocalRabbitConnectionFactoryConfiguration.class, CloudRabbitConnectionFactoryConfiguration.class})
 @Configuration
 public class ServiceConfiguration {
 

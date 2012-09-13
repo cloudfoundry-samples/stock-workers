@@ -1,4 +1,4 @@
-package org.cloudfoundry.workers.stocks.integration.service.config;
+package org.cloudfoundry.workers.common.config;
 
 import org.cloudfoundry.runtime.env.CloudEnvironment;
 import org.cloudfoundry.runtime.env.RabbitServiceInfo;
@@ -22,7 +22,8 @@ public class CloudRabbitConnectionFactoryConfiguration implements RabbitConnecti
         return new CloudEnvironment();
     }
 
-    @Override    @Bean
+    @Override
+    @Bean
     public ConnectionFactory connectionFactory() throws Throwable {
 
         CloudEnvironment cloudEnvironment = this.cloudEnvironment();

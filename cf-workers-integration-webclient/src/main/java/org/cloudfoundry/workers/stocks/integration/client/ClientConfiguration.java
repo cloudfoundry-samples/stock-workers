@@ -22,6 +22,8 @@ import org.apache.commons.lang.builder.ToStringBuilder;
 import org.cloudfoundry.runtime.env.CloudEnvironment;
 import org.cloudfoundry.runtime.env.RabbitServiceInfo;
 import org.cloudfoundry.runtime.service.messaging.RabbitServiceCreator;
+import org.cloudfoundry.workers.common.config.CloudRabbitConnectionFactoryConfiguration;
+import org.cloudfoundry.workers.common.config.LocalRabbitConnectionFactoryConfiguration;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -37,6 +39,7 @@ import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.ServiceActivator;
@@ -49,6 +52,7 @@ import org.springframework.util.Assert;
  * @author Josh Long (josh.long@springsource.com)
  */
 @ImportResource("classpath:/client.xml")
+@Import({LocalRabbitConnectionFactoryConfiguration.class, CloudRabbitConnectionFactoryConfiguration.class})
 @Configuration
 public class ClientConfiguration {
 
