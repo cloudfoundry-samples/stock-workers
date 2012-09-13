@@ -34,13 +34,9 @@ public class MockStockSymbolLookupClient implements StockSymbolLookupClient {
         return new Random().nextLong();
     }
 
-    private StockSymbolLookup fabricateForSymbol(String ticker, String exchange) {
-        return new StockSymbolLookup(randomLong(), randomDouble(), ticker,
-                StringUtils.hasText(exchange) ? exchange : "NYSE", randomDouble(), randomDouble(), randomDouble());
-    }
-
     @Override
     public StockSymbolLookup lookupSymbol(String symbol)  throws Throwable {
-        return fabricateForSymbol(symbol, null);
+        return new StockSymbolLookup(randomLong(), randomDouble(), symbol,
+                StringUtils.hasText(null) ? null : "NYSE", randomDouble(), randomDouble(), randomDouble());
     }
 }

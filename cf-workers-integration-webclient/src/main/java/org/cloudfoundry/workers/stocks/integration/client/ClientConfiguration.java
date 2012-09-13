@@ -24,6 +24,7 @@ import org.cloudfoundry.runtime.env.RabbitServiceInfo;
 import org.cloudfoundry.runtime.service.messaging.RabbitServiceCreator;
 import org.cloudfoundry.workers.common.config.CloudRabbitConnectionFactoryConfiguration;
 import org.cloudfoundry.workers.common.config.LocalRabbitConnectionFactoryConfiguration;
+import org.cloudfoundry.workers.common.config.RabbitConnectionFactoryConfiguration;
 import org.springframework.amqp.core.AmqpAdmin;
 import org.springframework.amqp.core.Binding;
 import org.springframework.amqp.core.BindingBuilder;
@@ -45,6 +46,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.integration.annotation.ServiceActivator;
 import org.springframework.util.Assert;
 
+import javax.inject.Inject;
+
 /**
  * Configures the service's gateway client which in turn communicates with the
  * remote service through a Spring Integration gateway implementation.
@@ -58,39 +61,42 @@ public class ClientConfiguration {
 
 	private String tickers = "tickers";
 
-	@Autowired
+    @Inject
+    private RabbitConnectionFactoryConfiguration rabbitConnectionFactoryConfiguration ;
+
+	@Inject
 	private Environment environment;
 
 	@Bean
-	public RabbitTemplate amqpTemplate() {
-		RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
+	public RabbitTemplate amqpTemplate() throws Throwable  {
+		RabbitTemplate rabbitTemplate = new RabbitTemplate( rabbitConnectionFactoryConfiguration.connectionFactory());
 		rabbitTemplate.setMessageConverter(mc());
 		return rabbitTemplate;
 	}
 
 	@Bean
-	public RabbitTransactionManager amqpTransactionManager() {
-		return new RabbitTransactionManager(this.connectionFactory());
+	public RabbitTransactionManager amqpTransactionManager() throws Throwable  {
+		return new RabbitTransactionManager(rabbitConnectionFactoryConfiguration.connectionFactory());
 	}
 
 	@Bean
 	public MessageConverter mc() {
 		return new JsonMessageConverter();
 	}
-
-	@Bean
-	public ConnectionFactory connectionFactory() {
-
-		CloudEnvironment cloudEnvironment = this.cloudEnvironment();
-		Collection<RabbitServiceInfo> rabbitServiceInfoList = cloudEnvironment
-				.getServiceInfos(RabbitServiceInfo.class);
-		Assert.isTrue(rabbitServiceInfoList.size() > 0,
-				"the rabbitService infos collection should be > 0");
-		RabbitServiceInfo rabbitServiceInfo = rabbitServiceInfoList.iterator()
-				.next();
-		RabbitServiceCreator rabbitServiceCreator = new RabbitServiceCreator();
-		return rabbitServiceCreator.createService(rabbitServiceInfo);
-	}
+//
+//	@Bean
+//	public ConnectionFactory connectionFactory() {
+//
+//		CloudEnvironment cloudEnvironment = this.cloudEnvironment();
+//		Collection<RabbitServiceInfo> rabbitServiceInfoList = cloudEnvironment
+//				.getServiceInfos(RabbitServiceInfo.class);
+//		Assert.isTrue(rabbitServiceInfoList.size() > 0,
+//				"the rabbitService infos collection should be > 0");
+//		RabbitServiceInfo rabbitServiceInfo = rabbitServiceInfoList.iterator()
+//				.next();
+//		RabbitServiceCreator rabbitServiceCreator = new RabbitServiceCreator();
+//		return rabbitServiceCreator.createService(rabbitServiceInfo);
+//	}
 
 	@Bean
 	public CloudEnvironment cloudEnvironment() {
@@ -98,26 +104,26 @@ public class ClientConfiguration {
 	}
 
 	@Bean
-	public AmqpAdmin amqpAdmin() {
-		return new RabbitAdmin(this.connectionFactory());
+	public AmqpAdmin amqpAdmin() throws Throwable  {
+		return new RabbitAdmin(   rabbitConnectionFactoryConfiguration.connectionFactory());
 	}
 
 	@Bean
-	public Queue customerQueue() {
+	public Queue customerQueue() throws Throwable {
 		Queue q = new Queue(this.tickers);
 		amqpAdmin().declareQueue(q);
 		return q;
 	}
 
 	@Bean
-	public DirectExchange customerExchange() {
+	public DirectExchange customerExchange() throws Throwable  {
 		DirectExchange directExchange = new DirectExchange(tickers);
 		this.amqpAdmin().declareExchange(directExchange);
 		return directExchange;
 	}
 
 	@Bean
-	public Binding marketDataBinding() {
+	public Binding marketDataBinding() throws Throwable  {
 		return BindingBuilder.bind(customerQueue()).to(customerExchange())
 				.with(this.tickers);
 	}

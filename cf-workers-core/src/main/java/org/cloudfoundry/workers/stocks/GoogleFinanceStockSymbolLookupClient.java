@@ -53,6 +53,7 @@ public class GoogleFinanceStockSymbolLookupClient  implements StockSymbolLookupC
         JsonNode node = new ObjectMapper().readTree(response);
         return convertJsonNodeInToSymbolLookup(node);
     }
+
     private StockSymbolLookup convertJsonNodeInToSymbolLookup(JsonNode jsonNode) throws Throwable {
         Number id = jsonNode.get("id").getValueAsLong();
         Double changeWhileOpen = jsonNode.get("c").getValueAsDouble();
