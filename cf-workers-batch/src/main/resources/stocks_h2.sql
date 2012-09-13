@@ -1,3 +1,5 @@
+drop table public.stocks if exists ; 
+drop table public.stocks_data if exists ; 
 
 CREATE TABLE PUBLIC.stocks (
                  symbol VARCHAR(10) NOT NULL,
@@ -21,3 +23,11 @@ FOREIGN KEY (symbol)
 REFERENCES PUBLIC.stocks (symbol)
 ON DELETE NO ACTION
 ON UPDATE NO ACTION;
+
+
+-- seed the table with some sample tickers
+INSERT INTO STOCKS(symbol) values('GOOG');
+INSERT INTO STOCKS(symbol) values('MSFT');
+INSERT INTO STOCKS(symbol) values('ORCL');
+INSERT INTO STOCKS(symbol) values('ADBE');
+INSERT INTO STOCKS(symbol) values('VMW');
