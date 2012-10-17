@@ -16,24 +16,33 @@
 
 package org.cloudfoundry.workers.stocks.integration.service.config;
 
+import javax.inject.Inject;
+
+import org.aopalliance.intercept.MethodInterceptor;
+import org.aopalliance.intercept.MethodInvocation;
+import org.cloudfoundry.runtime.env.ApplicationInstanceInfo;
+import org.cloudfoundry.runtime.env.CloudEnvironment;
 import org.cloudfoundry.workers.common.config.CloudRabbitConnectionFactoryConfiguration;
 import org.cloudfoundry.workers.common.config.LocalRabbitConnectionFactoryConfiguration;
 import org.cloudfoundry.workers.common.config.RabbitConnectionFactoryConfiguration;
 import org.cloudfoundry.workers.stocks.StockSymbolLookupClient;
 import org.cloudfoundry.workers.stocks.YahooPipesQuotesApiStockSymbolLookupClient;
-import org.springframework.amqp.core.*;
+import org.springframework.amqp.core.AmqpAdmin;
+import org.springframework.amqp.core.Binding;
+import org.springframework.amqp.core.BindingBuilder;
+import org.springframework.amqp.core.DirectExchange;
+import org.springframework.amqp.core.Queue;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.rabbit.transaction.RabbitTransactionManager;
 import org.springframework.amqp.support.converter.JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
+import org.springframework.aop.framework.ProxyFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.web.client.RestTemplate;
-
-import javax.inject.Inject;
 
 
 /**
@@ -58,8 +67,9 @@ public class ServiceConfiguration {
 
     @Bean
     public StockSymbolLookupClient client() {
-        return new YahooPipesQuotesApiStockSymbolLookupClient(restTemplate());
+    	return new YahooPipesQuotesApiStockSymbolLookupClient(restTemplate());    	 
     }
+     
 
     @Bean
     public RabbitTemplate rabbitTemplate() throws Throwable {

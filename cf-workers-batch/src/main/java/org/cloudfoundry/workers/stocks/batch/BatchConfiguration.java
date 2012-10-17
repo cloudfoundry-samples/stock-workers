@@ -115,17 +115,18 @@ public class BatchConfiguration {
 	 * TODO make the SQL a little smarter about not recreating the tables unless
 	 * they don't exist.
 	 * 
-	 */	
+	 */
 	@Bean
 	public DataSourceInitializer dataSourceInitializer() {
 		DataSourceInitializer dsi = new DataSourceInitializer();
 		dsi.setDataSource(dsConfig.dataSource());
 		ResourceDatabasePopulator resourceDatabasePopulator = new ResourceDatabasePopulator();
 		String[] scripts = "/batch_%s.sql,/stocks_%s.sql".split(",");
-		String scriptSuffix = cloudEnvironment().isCloudFoundry() ? "psql" : "h2";
-		for (String s : scripts){			
-			ClassPathResource classPathResource = 
-					new ClassPathResource(String.format(s, scriptSuffix)) ;
+		String scriptSuffix = cloudEnvironment().isCloudFoundry() ? "psql"
+				: "h2";
+		for (String s : scripts) {
+			ClassPathResource classPathResource = new ClassPathResource(
+					String.format(s, scriptSuffix));
 			resourceDatabasePopulator.addScript(classPathResource);
 		}
 		dsi.setDatabasePopulator(resourceDatabasePopulator);
@@ -284,35 +285,16 @@ public class BatchConfiguration {
 		jdbcBatchItemWriter
 				.setSql("INSERT INTO STOCKS_DATA( DATE_ANALYSED, HIGH_PRICE, LOW_PRICE,  CLOSING_PRICE, SYMBOL) VALUES ( :da, :hp, :lp,  :cp, :s ) ");
 		jdbcBatchItemWriter.setDataSource(dsConfig.dataSource());
-		jdbcBatchItemWriter
-				.setItemSqlParameterSourceProvider(new ItemSqlParameterSourceProvider<StockSymbolLookup>() {
+		jdbcBatchItemWriter.setItemSqlParameterSourceProvider(new ItemSqlParameterSourceProvider<StockSymbolLookup>() {
 					@Override
-					public SqlParameterSource createSqlParameterSource(
-							StockSymbolLookup item) {
+					public SqlParameterSource createSqlParameterSource( StockSymbolLookup item) {
 						return new MapSqlParameterSource()
-								.addValue(
-										"da",
-										new java.sql.Date(dateOfAnalysis
-												.getTime()), Types.DATE)
-								.addValue("hp", item.getHighPrice(),
-										Types.DOUBLE)
-								.addValue("lp", item.getLowPrice(),
-										Types.DOUBLE)
+								.addValue( "da", new java.sql.Date(dateOfAnalysis.getTime()), Types.DATE)
+								.addValue("hp", item.getHighPrice(), Types.DOUBLE)
+								.addValue("lp", item.getLowPrice(), Types.DOUBLE)
 								.addValue("s", item.getTicker())
-								.addValue("si", item.getId(), Types.BIGINT) // stock
-																			// id
-																			// has
-																			// to
-																			// be
-																			// the
-																			// same
-																			// as
-																			// in
-																			// the
-																			// Symbol
-																			// lookup
-								.addValue("cp", item.getLastValueWhileOpen(),
-										Types.DOUBLE);
+								.addValue("si", item.getId(), Types.BIGINT)
+								.addValue("cp", item.getLastValueWhileOpen(), Types.DOUBLE);
 
 					}
 				});

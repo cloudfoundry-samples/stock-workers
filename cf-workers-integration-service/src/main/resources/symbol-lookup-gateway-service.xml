@@ -10,6 +10,7 @@
 		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
+    
     <channel id="inboundSymbolsRequests"/>
 
     <amqp:inbound-gateway request-channel="inboundSymbolsRequests"
@@ -18,6 +19,7 @@
                           connection-factory="connectionFactory"/>
 
 
-    <service-activator ref="client" input-channel="inboundSymbolsRequests" requires-reply="true"/>
-
+    <service-activator  ref="client" input-channel="inboundSymbolsRequests" requires-reply="true"/>
+	    
+    
 </beans:beans>

@@ -70,15 +70,16 @@ public class YahooPipesQuotesApiStockSymbolLookupClient implements
 				buildStockUrl(symbol));
 		response = response.substring(response.indexOf("(") + 1);
 		response = response.substring(0, response.lastIndexOf(")")).trim();
-		logger.info(response);
+//		logger.info(response);
 		JsonNode jsonNode = new ObjectMapper().readTree(response);
+		logger.info( "LOOKUP REQUEST FOR SYMBOL: "+ symbol);
 		return convertJsonNodeToStockSymbolLookup(jsonNode);
 	}
 
 	private StockSymbolLookup convertJsonNodeToStockSymbolLookup(
 			JsonNode jsonNode) {
 		JsonNode jsonNode1 = jsonNode.get("query").get("results").get("quote");
-		logger.info(ToStringBuilder.reflectionToString(jsonNode1));
+		//logger.info(ToStringBuilder.reflectionToString(jsonNode1));
 		String symbol = jsonNode1.get("symbol").getValueAsText();
 		String range = jsonNode1.get("DaysRange").getValueAsText();
 		String parts[] = range.split("\\s+-\\s+");
